@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useState } from "react";
 import {
   RiFilePdfLine,
   RiErrorWarningLine,
@@ -8,6 +9,8 @@ import {
   RiInformationLine,
   RiFileTextLine,
   RiArrowLeftSLine,
+  RiArrowLeftLine,
+  RiArrowRightLine,
   RiCheckboxCircleLine,
 } from "@remixicon/react";
 import { Badge } from "@/components/ui/badge";
@@ -407,11 +410,14 @@ const severityConfig = {
 
 // ── Page ────────────────────────────────────────────────────────────
 
+const TOTAL_PAGES = 12;
+
 export default function PruefDashboardPage() {
   const params = useParams();
   const id = params.id as string;
   const pruefung = pruefungen[id];
   const findings = findingsMap[id] ?? [];
+  const [currentPage, setCurrentPage] = useState(1);
 
   const errors = findings.filter((f) => f.severity === "error").length;
   const notices = findings.filter((f) => f.severity === "notice").length;
@@ -427,200 +433,214 @@ export default function PruefDashboardPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col">
-      {/* ── Header ────────────────────────────────────────────────── */}
-      <header className="border-b bg-background px-6 py-3 flex items-center gap-4 shrink-0">
-        <Button variant="ghost" size="icon" className="size-8" asChild>
-          <Link href="/demo/qualitaetsmanagement/pruefung">
-            <RiArrowLeftSLine className="size-5" />
-          </Link>
-        </Button>
+    <div className="flex h-screen overflow-hidden">
+      {/* ── Left: Header + PDF viewer ─────────────────────────────── */}
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Header */}
+        <header className="border-b bg-background px-6 py-3 flex items-center gap-4 shrink-0">
+          <Button variant="ghost" size="icon" className="size-8" asChild>
+            <Link href="/demo/qualitaetsmanagement/pruefung">
+              <RiArrowLeftSLine className="size-5" />
+            </Link>
+          </Button>
 
-        <div className="flex items-center gap-2 min-w-0">
-          <RiFilePdfLine className="text-destructive/70 size-5 shrink-0" />
-          <span className="font-medium truncate text-sm">
-            {pruefung.dateiname}
+          <div className="flex items-center gap-2 min-w-0">
+            <RiFilePdfLine className="text-destructive/70 size-5 shrink-0" />
+            <span className="font-medium truncate text-sm">
+              {pruefung.dateiname}
+            </span>
+          </div>
+
+          <Badge variant="secondary" className="font-normal shrink-0">
+            {pruefung.gutachtenart}
+          </Badge>
+
+          <span className="text-muted-foreground text-xs shrink-0 hidden sm:block">
+            {new Date(pruefung.erstellt).toLocaleDateString("de-DE", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
           </span>
-        </div>
 
-        <Badge variant="secondary" className="font-normal shrink-0">
-          {pruefung.gutachtenart}
-        </Badge>
+          <span className="text-muted-foreground text-xs font-mono shrink-0 hidden md:block">
+            {pruefung.id} &middot; {pruefung.gutachtenRef}
+          </span>
 
-        <span className="text-muted-foreground text-xs shrink-0 hidden sm:block">
-          {new Date(pruefung.erstellt).toLocaleDateString("de-DE", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
-        </span>
+          {/* Spacer */}
+          <div className="flex-1" />
 
-        <span className="text-muted-foreground text-xs font-mono shrink-0 hidden md:block">
-          {pruefung.id} &middot; {pruefung.gutachtenRef}
-        </span>
+          {/* Summary badges */}
+          <div className="flex items-center gap-2 shrink-0">
+            {errors > 0 && (
+              <Badge className="bg-destructive/10 text-destructive border-destructive/20 font-normal gap-1 text-xs">
+                <RiAlarmWarningLine className="size-3" />
+                {errors} {errors === 1 ? "Error" : "Errors"}
+              </Badge>
+            )}
+            {notices > 0 && (
+              <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 font-normal gap-1 text-xs">
+                <RiInformationLine className="size-3" />
+                {notices} {notices === 1 ? "Notice" : "Notices"}
+              </Badge>
+            )}
+            {findings.length === 0 && (
+              <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-normal gap-1 text-xs">
+                <RiCheckboxCircleLine className="size-3" />
+                Keine Befunde
+              </Badge>
+            )}
+          </div>
+        </header>
 
-        {/* Spacer */}
-        <div className="flex-1" />
+        {/* PDF Viewer – static placeholder, no scroll */}
+        <div className="flex-1 bg-muted/30 flex flex-col">
+          {/* Page navigation bar */}
+          <div className="flex items-center justify-center gap-3 py-2.5 border-b bg-background/80 backdrop-blur-sm shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
+              <RiArrowLeftLine className="size-4" />
+            </Button>
+            <span className="text-sm tabular-nums text-muted-foreground">
+              Seite{" "}
+              <span className="text-foreground font-medium">{currentPage}</span>
+              {" "}von{" "}
+              <span className="text-foreground font-medium">{TOTAL_PAGES}</span>
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              disabled={currentPage >= TOTAL_PAGES}
+              onClick={() =>
+                setCurrentPage((p) => Math.min(TOTAL_PAGES, p + 1))
+              }
+            >
+              <RiArrowRightLine className="size-4" />
+            </Button>
+          </div>
 
-        {/* Summary badges */}
-        <div className="flex items-center gap-2 shrink-0">
-          {errors > 0 && (
-            <Badge className="bg-destructive/10 text-destructive border-destructive/20 font-normal gap-1">
-              <RiAlarmWarningLine className="size-3.5" />
-              {errors} {errors === 1 ? "Error" : "Errors"}
-            </Badge>
-          )}
-          {notices > 0 && (
-            <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 font-normal gap-1">
-              <RiInformationLine className="size-3.5" />
-              {notices} {notices === 1 ? "Notice" : "Notices"}
-            </Badge>
-          )}
-          {findings.length === 0 && (
-            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-normal gap-1">
-              <RiCheckboxCircleLine className="size-3.5" />
-              Keine Befunde
-            </Badge>
-          )}
-        </div>
-      </header>
-
-      {/* ── Body: PDF viewer + Review sidebar ─────────────────────── */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* PDF Viewer (left) */}
-        <div className="flex-1 bg-muted/30 flex flex-col items-center justify-center overflow-auto">
-          <div className="w-full max-w-2xl mx-auto px-8 py-12">
-            {/* Mock PDF */}
-            <div className="bg-background rounded-lg shadow-sm border p-10 min-h-[80vh] flex flex-col items-center">
-              <RiFileTextLine className="text-muted-foreground/20 size-16 mb-6" />
-              <p className="text-muted-foreground text-sm font-medium mb-2">
+          {/* PDF placeholder – fills remaining space, centered */}
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="bg-background rounded-lg shadow-sm border w-full max-w-2xl aspect-210/297 flex flex-col items-center justify-center">
+              <RiFileTextLine className="text-muted-foreground/15 size-20 mb-4" />
+              <p className="text-muted-foreground text-sm font-medium">
                 {pruefung.dateiname}
               </p>
-              <p className="text-muted-foreground/60 text-xs text-center max-w-sm mb-8">
-                PDF-Viewer – Das Gutachten wird hier angezeigt. Befunde aus der rechten Sidebar referenzieren die entsprechenden Seitenzahlen.
+              <p className="text-muted-foreground/50 text-xs mt-1">
+                Seite {currentPage} von {TOTAL_PAGES}
               </p>
-              {/* Mock pages */}
-              <div className="w-full space-y-4 mt-4">
-                {[1, 2, 3, 4, 5].map((page) => (
+
+              {/* Skeleton text lines */}
+              <div className="w-3/4 mt-8 space-y-2.5">
+                {[...Array(8)].map((_, i) => (
                   <div
-                    key={page}
-                    className="border border-dashed rounded-md p-6 text-center"
-                  >
-                    <span className="text-muted-foreground/40 text-xs">
-                      Seite {page}
-                    </span>
-                    <div className="mt-3 space-y-2">
-                      {[...Array(4)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-2.5 bg-muted rounded-full mx-auto"
-                          style={{ width: `${60 + Math.random() * 35}%` }}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                    key={i}
+                    className="h-2 bg-muted rounded-full"
+                    style={{
+                      width: `${50 + ((currentPage * 17 + i * 31) % 50)}%`,
+                      marginLeft: i === 0 || i === 4 ? 0 : undefined,
+                    }}
+                  />
                 ))}
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Review Sidebar (right) */}
-        <aside className="w-[440px] shrink-0 border-l bg-background flex flex-col overflow-hidden">
-          <div className="px-5 py-4 border-b shrink-0">
-            <h2 className="text-sm font-semibold flex items-center gap-2">
-              <RiErrorWarningLine className="size-4" />
-              Prüfbefunde
-              <span className="text-muted-foreground font-normal">
-                ({findings.length})
-              </span>
-            </h2>
-          </div>
+      {/* ── Right: Review sidebar – full height ───────────────────── */}
+      <aside className="w-[480px] shrink-0 border-l bg-background flex flex-col h-screen">
 
-          <div className="flex-1 overflow-y-auto">
-            {findings.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full gap-2 px-5">
-                <RiCheckboxCircleLine className="size-10 text-emerald-500/30" />
-                <p className="text-muted-foreground text-sm">
-                  Keine Befunde – Gutachten hat die Prüfung bestanden.
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {findings.map((finding, idx) => {
-                  const sev = severityConfig[finding.severity];
-                  const SevIcon = sev.icon;
-                  return (
-                    <div key={finding.id} className="px-5 py-4">
-                      {/* Severity + Rule */}
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={`mt-0.5 flex size-6 items-center justify-center rounded-md shrink-0 ${
+        {/* Scrollable findings list */}
+        <div className="flex-1 overflow-y-auto">
+          {findings.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full gap-2 px-5">
+              <RiCheckboxCircleLine className="size-10 text-emerald-500/30" />
+              <p className="text-muted-foreground text-sm">
+                Keine Befunde – Gutachten hat die Prüfung bestanden.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {findings.map((finding) => {
+                const sev = severityConfig[finding.severity];
+                const SevIcon = sev.icon;
+                return (
+                  <div key={finding.id} className="px-5 py-4">
+                    {/* Severity + Rule */}
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`mt-0.5 flex size-6 items-center justify-center rounded-md shrink-0 ${
+                          finding.severity === "error"
+                            ? "bg-destructive/10"
+                            : "bg-amber-500/10"
+                        }`}
+                      >
+                        <SevIcon
+                          className={`size-3.5 ${
                             finding.severity === "error"
-                              ? "bg-destructive/10"
-                              : "bg-amber-500/10"
+                              ? "text-destructive"
+                              : "text-amber-600"
                           }`}
-                        >
-                          <SevIcon
-                            className={`size-3.5 ${
-                              finding.severity === "error"
-                                ? "text-destructive"
-                                : "text-amber-600"
-                            }`}
-                          />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge className={`${sev.badgeClass} text-xs`}>
-                              {sev.label}
-                            </Badge>
-                            <span className="text-muted-foreground text-xs">
-                              Seite {finding.seite}
-                            </span>
-                          </div>
-                          <h3 className="mt-1.5 text-sm font-semibold">
-                            <span className="text-muted-foreground font-mono text-xs mr-1.5">
-                              {finding.regelId}
-                            </span>
-                            {finding.regelTitel}
-                          </h3>
-                        </div>
+                        />
                       </div>
-
-                      {/* Zitat */}
-                      <div className="mt-3 ml-9 border-l-2 border-muted pl-3">
-                        <p className="text-xs text-muted-foreground italic leading-relaxed">
-                          {finding.zitat}
-                        </p>
-                      </div>
-
-                      {/* KI-Beschreibung */}
-                      <div className="mt-3 ml-9 space-y-2">
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-0.5">
-                            Feststellung
-                          </p>
-                          <p className="text-sm leading-relaxed">
-                            {finding.beschreibung}
-                          </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className={`${sev.badgeClass} text-xs`}>
+                            {sev.label}
+                          </Badge>
+                          <span className="text-muted-foreground text-xs">
+                            Seite {finding.seite}
+                          </span>
                         </div>
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-0.5">
-                            Erwartet
-                          </p>
-                          <p className="text-sm leading-relaxed text-muted-foreground">
-                            {finding.erwartet}
-                          </p>
-                        </div>
+                        <h3 className="mt-1.5 text-sm font-semibold">
+                          <span className="text-muted-foreground font-mono text-xs mr-1.5">
+                            {finding.regelId}
+                          </span>
+                          {finding.regelTitel}
+                        </h3>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </aside>
-      </div>
+
+                    {/* Zitat */}
+                    <div className="mt-3 ml-9 border-l-2 border-muted pl-3">
+                      <p className="text-xs text-muted-foreground italic leading-relaxed">
+                        {finding.zitat}
+                      </p>
+                    </div>
+
+                    {/* KI-Beschreibung */}
+                    <div className="mt-3 ml-9 space-y-2">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-0.5">
+                          Feststellung
+                        </p>
+                        <p className="text-sm leading-relaxed">
+                          {finding.beschreibung}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-0.5">
+                          Erwartet
+                        </p>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          {finding.erwartet}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </aside>
     </div>
   );
 }
