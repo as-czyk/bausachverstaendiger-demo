@@ -90,17 +90,17 @@ export default function SchadensdarstellungSchreibenPage() {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-left">
-            <th className="text-muted-foreground pb-3 font-medium">Titel</th>
-            <th className="text-muted-foreground pb-3 font-medium hidden sm:table-cell">
+            <th className="text-muted-foreground pb-3 font-medium pr-4">Titel</th>
+            <th className="text-muted-foreground pb-3 font-medium hidden sm:table-cell px-4">
               Datum
             </th>
-            <th className="text-muted-foreground pb-3 font-medium hidden md:table-cell">
+            <th className="text-muted-foreground pb-3 font-medium hidden md:table-cell px-4">
               Schadensart
             </th>
-            <th className="text-muted-foreground pb-3 font-medium hidden lg:table-cell text-center">
+            <th className="text-muted-foreground pb-3 font-medium hidden lg:table-cell text-center px-4">
               Fotos
             </th>
-            <th className="text-muted-foreground pb-3 font-medium">Status</th>
+            <th className="text-muted-foreground pb-3 font-medium px-4">Status</th>
             <th className="pb-3">
               <span className="sr-only">Aktionen</span>
             </th>
@@ -118,22 +118,22 @@ export default function SchadensdarstellungSchreibenPage() {
                   {row.id} &middot; {row.gutachten}
                 </div>
               </td>
-              <td className="text-muted-foreground py-4 pr-4 hidden sm:table-cell whitespace-nowrap">
+              <td className="text-muted-foreground py-4 px-4 hidden sm:table-cell whitespace-nowrap">
                 {new Date(row.datum).toLocaleDateString("de-DE", {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
                 })}
               </td>
-              <td className="py-4 pr-4 hidden md:table-cell">
+              <td className="py-4 px-4 hidden md:table-cell">
                 <Badge variant="secondary" className="font-normal">
                   {row.schadensart}
                 </Badge>
               </td>
-              <td className="text-muted-foreground py-4 pr-4 hidden lg:table-cell text-center tabular-nums">
+              <td className="text-muted-foreground py-4 px-4 hidden lg:table-cell text-center tabular-nums">
                 {row.fotos}
               </td>
-              <td className="py-4 pr-4">
+              <td className="py-4 px-4">
                 <Badge
                   variant={statusColor[row.status]}
                   className="font-normal"
