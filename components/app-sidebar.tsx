@@ -8,6 +8,8 @@ import {
   RiSearchLine,
   RiFileEditLine,
   RiLogoutBoxRLine,
+  RiListCheck3,
+  RiCheckDoubleLine,
 } from "@remixicon/react";
 import {
   Sidebar,
@@ -18,6 +20,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -28,25 +33,34 @@ const navItems = [
     icon: RiHome4Line,
   },
   {
-    title: "Gutachten-Pr\u00fcfung",
-    href: "/demo/gutachten-pruefung",
-    icon: RiShieldCheckLine,
+    title: "Schadensdarstellung schreiben",
+    href: "/demo/schadensdarstellung-schreiben",
+    icon: RiFileEditLine,
   },
   {
     title: "Gutachten suchen",
     href: "/demo/gutachten-suchen",
     icon: RiSearchLine,
   },
+];
+
+const qmSubItems = [
   {
-    title: "Schadensdarstellung schreiben",
-    href: "/demo/schadensdarstellung-schreiben",
-    icon: RiFileEditLine,
+    title: "Regeln",
+    href: "/demo/qualitaetsmanagement/regeln",
+    icon: RiListCheck3,
+  },
+  {
+    title: "Pr\u00fcfung",
+    href: "/demo/qualitaetsmanagement/pruefung",
+    icon: RiCheckDoubleLine,
   },
 ];
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { setOpen } = useSidebar();
+  const isQmActive = pathname.startsWith("/demo/qualitaetsmanagement");
 
   return (
     <Sidebar
@@ -63,7 +77,6 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname === item.href}
-                    tooltip={item.title}
                   >
                     <Link href={item.href}>
                       <item.icon />
@@ -72,6 +85,31 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              {/* Qualit\u00e4tsmanagement with sub-items */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={isQmActive}
+                >
+                  <RiShieldCheckLine />
+                  <span>{"Qualit\u00e4tsmanagement"}</span>
+                </SidebarMenuButton>
+                <SidebarMenuSub>
+                  {qmSubItems.map((sub) => (
+                    <SidebarMenuSubItem key={sub.href}>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={pathname === sub.href}
+                      >
+                        <Link href={sub.href}>
+                          <sub.icon />
+                          <span>{sub.title}</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  ))}
+                </SidebarMenuSub>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -79,7 +117,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Logout">
+            <SidebarMenuButton asChild>
               <Link href="/">
                 <RiLogoutBoxRLine />
                 <span>Logout</span>
