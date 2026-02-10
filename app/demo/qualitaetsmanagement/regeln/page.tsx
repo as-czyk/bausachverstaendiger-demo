@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RiErrorWarningLine, RiAlertLine } from "@remixicon/react";
+import { RiErrorWarningLine } from "@remixicon/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -9,211 +9,373 @@ import { Button } from "@/components/ui/button";
 
 interface Regel {
   id: string;
+  kategorie: string;
   titel: string;
   beschreibung: string;
   details: string[];
-  kategorie: "schimmel" | "allgemein";
   gutachtenarten: string[];
+  schweregrad: "SEHR HOCH" | "HOCH" | "MITTEL" | "NIEDRIG";
+  rechtsgrundlage?: string;
 }
 
 // ── Rules data ──────────────────────────────────────────────────────
 
 const regeln: Regel[] = [
-  // Schimmelgutachten-spezifisch
+  // KATEGORIE 1: PFLICHTDOKUMENTE & UNTERLAGEN
   {
-    id: "S-01",
-    titel: "Unvollst\xe4ndige Ursachenermittlung",
+    id: "1.1",
+    kategorie: "Pflichtdokumente & Unterlagen",
+    titel: "Fotodokumentation unvollständig",
     beschreibung:
-      "Gutachter schlie\xdft vorschnell auf \u201Efalsches L\xfcftungsverhalten\u201C des Mieters, ohne alle baulichen Ursachen gepr\xfcft zu haben.",
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob alle im Text referenzierten Fotos tatsächlich als Anlage vorhanden sind, sodass die Beweiskraft des Gutachtens nicht durch fehlende Bildnachweise beeinträchtigt wird.",
     details: [
-      "Keine ausreichende Feuchtemessung (Bohrlochmethode fehlt)",
-      "Keine W\xe4rmebr\xfcckenmessung (Thermografie)",
-      "Keine Langzeitaufzeichnung des Raumklimas (Datenlogger \xfcber 3 Wochen)",
-      "Keine Pr\xfcfung baulicher M\xe4ngel (D\xe4mmung, Abdichtung)",
+      "Text enthält Verweise wie \"siehe Anlage 1, Foto 1-8\"",
+      "System prüft: Sind 8 Fotos in Anlage 1 vorhanden?",
+      "FEHLER wenn: Anzahl der Fotos < referenzierte Anzahl",
     ],
-    kategorie: "schimmel",
-    gutachtenarten: ["Schimmelgutachten"],
+    gutachtenarten: [
+      "Bauschadensgutachten",
+      "Baumängelgutachten",
+      "Schimmelgutachten",
+      "Feuchtigkeitsschadengutachten",
+      "Wasserschadengutachten",
+      "Hauskaufgutachten",
+      "Gerichtsgutachten",
+      "Versicherungsgutachten",
+    ],
+    schweregrad: "HOCH",
   },
   {
-    id: "S-02",
-    titel: "Falsche Messtechnik",
+    id: "1.2",
+    kategorie: "Pflichtdokumente & Unterlagen",
+    titel: "Baupläne/Baugenehmigung nicht beigefügt",
     beschreibung:
-      "Einfache elektrische Widerstandsmessger\xe4te liefern irrelevante Werte. Oberfl\xe4chenmessung statt Tiefenmessung.",
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob relevante Baupläne oder die Baugenehmigung als Anlage beigefügt sind, sodass Soll-Ist-Vergleiche baulicher Ausführungen nachvollziehbar sind.",
     details: [
-      "Korrekt: Bohrlochmethode (8 cm Tiefe)",
-      "Rel. Luftfeuchtigkeit >95% = Wasserschaden",
-      "Oberfl\xe4chenmessger\xe4te sind f\xfcr Schimmelursachenanalyse ungeeignet",
+      "Gutachten enthält Aussagen zu \"vertraglich vereinbarter Ausführung\" oder \"Abweichung von Bauplan\"",
+      "System prüft: Ist Bauplan/Baugenehmigung im Anhang?",
+      "FEHLER wenn: Verweis ohne beigefügtes Dokument",
     ],
-    kategorie: "schimmel",
-    gutachtenarten: ["Schimmelgutachten", "Feuchtigkeitsschadengutachten"],
+    gutachtenarten: [
+      "Bauschadensgutachten",
+      "Baumängelgutachten",
+      "Gerichtsgutachten",
+    ],
+    schweregrad: "MITTEL",
   },
   {
-    id: "S-03",
-    titel: "Einseitige Schuldzuweisung",
+    id: "1.3",
+    kategorie: "Pflichtdokumente & Unterlagen",
+    titel: "Messprotokoll fehlt bei Feuchtemessung",
     beschreibung:
-      "Gutachter geht mit vorgefertigter Meinung an die Untersuchung. Plausibilit\xe4tspr\xfcfung fehlt: Wurden ALLE m\xf6glichen Ursachen ausgeschlossen?",
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob bei durchgeführter Feuchtemessung ein vollständiges Messprotokoll mit Messpunkten, Messwerten und Gerätekalibrierung beigefügt ist, sodass die Messergebnisse nachvollziehbar und gerichtsfest sind.",
     details: [
-      "Keine neutrale Herangehensweise an die Schadensursache",
-      "Fehlende Pr\xfcfung alternativer Ursachen (baulich, nutzungsbedingt, extern)",
-      "Kein Ausschlussverfahren dokumentiert",
+      "Text enthält: \"Feuchtemessung ergab X %\"",
+      "System prüft Messprotokoll auf:",
+      "✓ Messpunkte dokumentiert (Lage, Tiefe)?",
+      "✓ Messmethode genannt (CM-Messung, Bohrlochmethode)?",
+      "✓ Gerätekalibrierung dokumentiert?",
+      "✓ Datum/Uhrzeit der Messung?",
+      "FEHLER wenn: Fehlende Angaben",
     ],
-    kategorie: "schimmel",
-    gutachtenarten: ["Schimmelgutachten"],
-  },
-  {
-    id: "S-04",
-    titel: "Unzureichende Dokumentation",
-    beschreibung:
-      "Keine Fotodokumentation der betroffenen Stellen, fehlende Messwerttabellen, keine Darstellung der Historie.",
-    details: [
-      "Fotodokumentation der betroffenen Stellen fehlt",
-      "Keine Messwerttabellen beigef\xfcgt",
-      "Historie (Vorbefunde, Reparaturen) nicht dargestellt",
-    ],
-    kategorie: "schimmel",
     gutachtenarten: [
       "Schimmelgutachten",
       "Feuchtigkeitsschadengutachten",
       "Wasserschadengutachten",
     ],
+    schweregrad: "HOCH",
+    rechtsgrundlage: "DIN 18560 (Estrich), WTA-Merkblatt 4-5-99",
   },
-  // Allgemeine Gutachtenfehler
+  // KATEGORIE 2: NORMKONFORMITÄT & TECHNISCHE STANDARDS
   {
-    id: "A-01",
-    titel: "Vermischung von Sach- und Rechtsfragen",
+    id: "2.1",
+    kategorie: "Normkonformität & Technische Standards",
+    titel: "DIN 18202 bei Rissen nicht angewendet",
     beschreibung:
-      "Gutachter darf NUR Sachfragen beantworten. Rechtliche Bewertung (z.B. \u201EMangel liegt vor\u201C) ist Aufgabe des Gerichts/Anwalts.",
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob bei Rissen in Mauerwerk/Putz die DIN 18202 (Toleranzen im Hochbau) zur Bewertung herangezogen wurde, sodass die Beurteilung \"Mangel oder Toleranz\" normkonform erfolgt.",
     details: [
-      "Gutachter \xfcberschreitet seine Kompetenz",
-      "Rechtsbegriffe wie \u201EMangel\u201C oder \u201EHaftung\u201C d\xfcrfen nicht verwendet werden",
-      "Stattdessen: technische Abweichungen benennen und bewerten",
+      "Text enthält: \"Riss\" + Rissbreite in mm",
+      "System prüft: Wird DIN 18202, Tabelle 3 zitiert?",
+      "System prüft: Wird Sollwert (3 mm/1 m für Innenputz) genannt?",
+      "FEHLER wenn: Riss ohne Norm-Referenz bewertet",
     ],
-    kategorie: "allgemein",
-    gutachtenarten: [
-      "Gerichtsgutachten",
-      "Privatgutachten",
-      "Versicherungsgutachten",
-    ],
-  },
-  {
-    id: "A-02",
-    titel: "Fehlende Plausibilit\xe4tspr\xfcfung",
-    beschreibung:
-      "Wurden andere m\xf6gliche Ursachen ausgeschlossen? Nur EINE Ursache genannt, ohne Alternativen zu pr\xfcfen.",
-    details: [
-      "Beispiel Riss in der Wand: M\xf6gliche Ursachen sind Setzung, Materialfehler, Ersch\xfctterung, Temperatur",
-      "Alle Ursachen m\xfcssen benannt und systematisch ausgeschlossen werden",
-      "Ausschlussverfahren dokumentieren",
-    ],
-    kategorie: "allgemein",
-    gutachtenarten: [
-      "Bauschadensgutachten",
-      "Baum\xe4ngelgutachten",
-      "Gerichtsgutachten",
-    ],
+    gutachtenarten: ["Bauschadensgutachten", "Baumängelgutachten"],
+    schweregrad: "HOCH",
+    rechtsgrundlage: "DIN 18202:2019-07, Tabelle 3, Zeile 6",
   },
   {
-    id: "A-03",
-    titel: "Unvollst\xe4ndige Bestandsaufnahme",
+    id: "2.2",
+    kategorie: "Normkonformität & Technische Standards",
+    titel: "Feuchtemessung ohne Sollwert-Angabe",
     beschreibung:
-      "Nicht alle relevanten Bauteile untersucht. Versteckte Sch\xe4den nicht aufgedeckt.",
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob bei Feuchtemessungen der normkonforme Sollwert angegeben ist, sodass die Bewertung \"zu feucht\" oder \"belegreif\" nachvollziehbar ist.",
     details: [
-      "Hinter Verkleidungen, unter Estrich nicht gepr\xfcft",
-      "Keine Bauteil\xf6ffnung wo n\xf6tig",
-      "Angrenzende Bauteile nicht mit untersucht",
+      "Text enthält: \"CM-Messung\" oder \"Restfeuchte\" + Prozentwert",
+      "System prüft Sollwert-Angabe:",
+      "Zementestrich: ≤ 2,0 % (unbeheizt) / ≤ 1,8 % (beheizt)",
+      "Calciumsulfatestrich: ≤ 0,5 % (unbeheizt) / ≤ 0,3 % (beheizt)",
+      "Mauerwerk: < 2,5 % (normal)",
+      "FEHLER wenn: Messwert ohne Sollwert genannt",
     ],
-    kategorie: "allgemein",
     gutachtenarten: [
-      "Bauschadensgutachten",
-      "Baum\xe4ngelgutachten",
-      "Hauskaufgutachten",
-    ],
-  },
-  {
-    id: "A-04",
-    titel: "Fehlende Norm-Referenzen",
-    beschreibung:
-      "Gutachten nennt nicht die relevanten DIN-Normen. VOB/B, VOB/C nicht zitiert bei M\xe4ngeln.",
-    details: [
-      "DIN 18202 (Toleranzen im Hochbau) nicht herangezogen",
-      "VOB/B und VOB/C bei M\xe4ngelgutachten nicht zitiert",
-      "Keine Gegen\xfcberstellung Ist-/Soll-Zustand nach Norm",
-    ],
-    kategorie: "allgemein",
-    gutachtenarten: [
-      "Baum\xe4ngelgutachten",
-      "Gerichtsgutachten",
-      "Bauschadensgutachten",
-    ],
-  },
-  {
-    id: "A-05",
-    titel: "Ungenaue Schadensermittlung (Massenermittlung)",
-    beschreibung:
-      "Schadensumfang nicht exakt festgestellt. Sanierungskosten nicht plausibel.",
-    details: [
-      "Schadensumfang nicht quantifiziert (Fl\xe4che, L\xe4nge, Tiefe)",
-      "Keine Unterscheidung: Neu-/Altschaden",
-      "Sanierungskosten ohne Aufma\xdf und Einheitspreise",
-    ],
-    kategorie: "allgemein",
-    gutachtenarten: [
-      "Bauschadensgutachten",
-      "Versicherungsgutachten",
+      "Schimmelgutachten",
+      "Feuchtigkeitsschadengutachten",
       "Wasserschadengutachten",
     ],
+    schweregrad: "HOCH",
+    rechtsgrundlage: "DIN 18560, TKB-Merkblatt 16",
   },
   {
-    id: "A-06",
-    titel: "Vorsch\xe4den nicht ber\xfccksichtigt",
+    id: "2.3",
+    kategorie: "Normkonformität & Technische Standards",
+    titel: "Wärmebrücke ohne Thermografie-Nachweis",
     beschreibung:
-      "Fr\xfchere Sch\xe4den nicht dokumentiert. Altsch\xe4den werden dem aktuellen Verursacher angelastet.",
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob bei Verdacht auf Wärmebrücken eine Thermografie-Aufnahme durchgeführt und dokumentiert wurde, sodass die Ursachenermittlung bei Schimmel wasserdicht ist.",
     details: [
-      "Wurden fr\xfchere Sch\xe4den dokumentiert?",
-      "Haben Vorsch\xe4den Einfluss auf aktuellen Zustand?",
-      "Abgrenzung Alt-/Neuschaden fehlt",
+      "Text enthält: \"Wärmebrücke\" oder \"Temperaturdifferenz\"",
+      "System prüft: Sind Thermografie-Fotos in Anlage?",
+      "System prüft: Ist Temperaturdifferenz quantifiziert (°C)?",
+      "FEHLER wenn: Wärmebrücke ohne Bildnachweis behauptet",
     ],
-    kategorie: "allgemein",
     gutachtenarten: [
-      "Versicherungsgutachten",
-      "Gerichtsgutachten",
-      "Bauschadensgutachten",
-    ],
-  },
-  {
-    id: "A-07",
-    titel: "Mangelhafte Fotodokumentation",
-    beschreibung:
-      "Zu wenige Fotos, ohne Ma\xdfstab/Referenz. Keine \xdcbersichtsfotos (Raum \u2192 Detail).",
-    details: [
-      "Fotos ohne Ma\xdfstab oder Referenzobjekt",
-      "Keine \xdcbersichts-zu-Detail-Abfolge",
-      "Messpunkte nicht fotografisch dokumentiert",
-    ],
-    kategorie: "allgemein",
-    gutachtenarten: [
-      "Bauschadensgutachten",
-      "Baum\xe4ngelgutachten",
       "Schimmelgutachten",
+      "Feuchtigkeitsschadengutachten",
+    ],
+    schweregrad: "HOCH",
+    rechtsgrundlage: "DIN 4108-2 (Wärmeschutz), DIN EN 13187 (Thermografie)",
+  },
+  {
+    id: "2.4",
+    kategorie: "Normkonformität & Technische Standards",
+    titel: "Schimmel ohne Feuchtemessung bewertet",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob bei Schimmelbefall IMMER eine Feuchtemessung im Bauteil durchgeführt wurde (Bohrlochmethode, 8 cm Tiefe), sodass die Unterscheidung \"Baumangel vs. Nutzerverhalten\" rechtssicher getroffen wird.",
+    details: [
+      "Text enthält: \"Schimmel\" oder \"Schimmelpilz\"",
+      "System prüft Pflicht-Messungen:",
+      "✓ Feuchtemessung im Bauteil (Bohrlochmethode)?",
+      "✓ Messtiefe angegeben (mind. 8 cm)?",
+      "✓ Grenzwert 95 % rel. LF geprüft?",
+      "FEHLER wenn: Schimmel ohne Bauteil-Feuchtemessung",
+    ],
+    gutachtenarten: ["Schimmelgutachten"],
+    schweregrad: "SEHR HOCH",
+    rechtsgrundlage: "WTA-Merkblatt 4-5-99, Schimmelpilzleitfaden Umweltbundesamt",
+  },
+  // KATEGORIE 3: PLAUSIBILITÄTSPRÜFUNG & VOLLSTÄNDIGKEIT
+  {
+    id: "3.1",
+    kategorie: "Plausibilitätsprüfung & Vollständigkeit",
+    titel: "Keine Plausibilitätsprüfung bei Schimmel",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob bei Schimmelgutachten ALLE möglichen Ursachen ausgeschlossen wurden, sodass nicht vorschnell auf \"falsches Lüften\" geschlossen wird.",
+    details: [
+      "Text enthält: \"Schimmel\" + Ursache genannt",
+      "System prüft Ausschluss alternativer Ursachen:",
+      "✓ Wärmebrücke geprüft? (Thermografie)",
+      "✓ Wasserschaden ausgeschlossen? (Feuchtemessung Bauteil)",
+      "✓ Abdichtungsmangel geprüft? (bei Keller/Erdgeschoss)",
+      "✓ Lüftungsverhalten dokumentiert? (Langzeitaufzeichnung)",
+      "FEHLER wenn: Nur 1 Ursache genannt, andere nicht geprüft",
+    ],
+    gutachtenarten: ["Schimmelgutachten"],
+    schweregrad: "SEHR HOCH",
+    rechtsgrundlage: "VOB/B § 4 (Sorgfaltspflicht)",
+  },
+  {
+    id: "3.2",
+    kategorie: "Plausibilitätsprüfung & Vollständigkeit",
+    titel: "Lüftungsverhalten nicht dokumentiert",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob bei Schimmelgutachten das Lüftungsverhalten der Bewohner objektiviert wurde (z.B. Datenlogger 3 Wochen), sodass Schuldzuweisungen an Nutzer belegt sind.",
+    details: [
+      "Text enthält: \"falsches Lüften\" oder \"unzureichende Lüftung\"",
+      "System prüft:",
+      "✓ Langzeitaufzeichnung durchgeführt? (mind. 14 Tage)",
+      "✓ Raumtemperatur dokumentiert?",
+      "✓ Relative Luftfeuchtigkeit dokumentiert?",
+      "✓ Lüftungsfrequenz ermittelt?",
+      "FEHLER wenn: Lüftungsverhalten ohne Messung bewertet",
+    ],
+    gutachtenarten: ["Schimmelgutachten"],
+    schweregrad: "SEHR HOCH",
+    rechtsgrundlage: "DIN 4108-2, Schimmelpilzleitfaden UBA",
+  },
+  {
+    id: "3.3",
+    kategorie: "Plausibilitätsprüfung & Vollständigkeit",
+    titel: "Oberflächentemperatur nicht gemessen",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob bei Schimmelbefall die Oberflächentemperatur der betroffenen Wand gemessen wurde, sodass Tauwasserausfall als Ursache ausgeschlossen/bestätigt wird.",
+    details: [
+      "Text enthält: \"Schimmel\" an \"Außenwand\" oder \"Ecke\"",
+      "System prüft:",
+      "✓ Oberflächentemperatur in °C angegeben?",
+      "✓ Raumtemperatur zum Vergleich angegeben?",
+      "✓ Temperaturdifferenz berechnet?",
+      "✓ Taupunkt-Bewertung durchgeführt?",
+      "FEHLER wenn: Schimmel ohne Temperaturmessung",
+    ],
+    gutachtenarten: ["Schimmelgutachten"],
+    schweregrad: "HOCH",
+    rechtsgrundlage: "DIN 4108-2 (Mindestwärmeschutz)",
+  },
+  // KATEGORIE 4: MESSTECHNIK & METHODIK
+  {
+    id: "4.1",
+    kategorie: "Messtechnik & Methodik",
+    titel: "Elektrische Feuchtemessung bei Estrich",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert warnen, wenn bei Estrich nur elektrische Widerstandsmessung verwendet wurde, da diese für Belegreife-Prüfung nicht zulässig ist.",
+    details: [
+      "Text enthält: \"Feuchtemessung\" + \"Estrich\" oder \"Bodenbelag\"",
+      "System prüft Messmethode:",
+      "✓ CM-Messung (Calciumcarbid)? → OK",
+      "✓ Darr-Methode (Trockenschrank)? → OK",
+      "❌ Elektrische Messung (Widerstand/Kapazität)? → FEHLER",
+      "FEHLER wenn: Nur elektrische Messung bei Estrich",
+    ],
+    gutachtenarten: [
+      "Wasserschadengutachten",
+      "Feuchtigkeitsschadengutachten",
+    ],
+    schweregrad: "SEHR HOCH",
+    rechtsgrundlage: "DIN 18560, TKB-Merkblatt 16",
+  },
+  {
+    id: "4.2",
+    kategorie: "Messtechnik & Methodik",
+    titel: "Oberflächenmessung statt Tiefenmessung",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob Feuchtemessung im Bauteil in ausreichender Tiefe erfolgte (mind. 8 cm), sodass nicht nur oberflächliche Trockenheit gemessen wird.",
+    details: [
+      "Text enthält: \"Feuchtemessung\" + \"Mauerwerk\" oder \"Wand\"",
+      "System prüft:",
+      "✓ Messtiefe angegeben?",
+      "✓ Messtiefe ≥ 8 cm? (bei Bohrlochmethode)",
+      "FEHLER wenn: Keine Tiefenangabe oder < 8 cm",
+    ],
+    gutachtenarten: [
+      "Schimmelgutachten",
+      "Feuchtigkeitsschadengutachten",
+      "Wasserschadengutachten",
+    ],
+    schweregrad: "HOCH",
+    rechtsgrundlage: "WTA-Merkblatt 4-5-99",
+  },
+  {
+    id: "4.3",
+    kategorie: "Messtechnik & Methodik",
+    titel: "Probenentnahme-Ort nicht dokumentiert",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob bei CM-Messung der Entnahmeort der Estrichprobe dokumentiert ist (unterer bis mittlerer Bereich), sodass Messungen reproduzierbar sind.",
+    details: [
+      "Text enthält: \"CM-Messung\" + \"Estrich\"",
+      "System prüft Protokoll:",
+      "✓ Entnahmeort angegeben? (\"untere Hälfte\", \"mittlerer Bereich\")",
+      "✓ Anzahl der Messpunkte genannt?",
+      "✓ Raumangabe (welcher Raum)?",
+      "FEHLER wenn: Entnahmeort fehlt",
+    ],
+    gutachtenarten: [
+      "Wasserschadengutachten",
+      "Feuchtigkeitsschadengutachten",
+    ],
+    schweregrad: "MITTEL",
+    rechtsgrundlage: "TKB-Merkblatt 16, DIN 18560",
+  },
+  // KATEGORIE 5: RECHTLICHE ABGRENZUNG
+  {
+    id: "5.1",
+    kategorie: "Rechtliche Abgrenzung",
+    titel: "Vermischung von Sach- und Rechtsfragen",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert erkennen, ob der Gutachter Rechtsfragen beantwortet (z.B. Gewährleistungsansprüche), obwohl er nur Sachfragen beantworten darf, sodass Kompetenzüberschreitungen verhindert werden.",
+    details: [
+      "System prüft auf juristische Begriffe:",
+      "❌ \"Gewährleistung\"",
+      "❌ \"Schadensersatz\"",
+      "❌ \"Haftung\"",
+      "❌ \"Anspruch\"",
+      "❌ \"Verjährung\"",
+      "WARNUNG wenn: Juristischer Begriff im Gutachten",
+    ],
+    gutachtenarten: [
+      "Gerichtsgutachten",
+      "Privatgutachten",
+      "Versicherungsgutachten",
+    ],
+    schweregrad: "MITTEL",
+    rechtsgrundlage: "§ 404 ZPO (Sachverständigenbeweis)",
+  },
+  {
+    id: "5.2",
+    kategorie: "Rechtliche Abgrenzung",
+    titel: "Sanierungsempfehlung ohne Kostenschätzung",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob bei Sanierungsempfehlungen zumindest eine grobe Kostenschätzung enthalten ist, sodass Auftraggeber wirtschaftliche Entscheidungen treffen können.",
+    details: [
+      "Text enthält: \"Sanierung\" oder \"Instandsetzung\" + Maßnahme",
+      "System prüft:",
+      "✓ Kostenrahmen angegeben? (\"ca. 5.000-8.000 €\")",
+      "✓ Oder Hinweis: \"Kostenermittlung durch Fachfirma erforderlich\"",
+      "WARNUNG wenn: Sanierung ohne Kostenindikation",
+    ],
+    gutachtenarten: [
+      "Bauschadensgutachten",
+      "Baumängelgutachten",
+      "Versicherungsgutachten",
+    ],
+    schweregrad: "NIEDRIG",
+  },
+  // KATEGORIE 6: SCHADENSERMITTLUNG & DOKUMENTATION
+  {
+    id: "6.1",
+    kategorie: "Schadensermittlung & Dokumentation",
+    titel: "Schadensausmaß nicht quantifiziert",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob Schadensausmaße quantifiziert sind (Fläche in m², Länge in m), sodass Nachvollziehbarkeit und Vergleichbarkeit gegeben sind.",
+    details: [
+      "Text enthält Schadensbeschreibung",
+      "System prüft Quantifizierung:",
+      "✓ Bei Schimmel: Fläche in m² angegeben?",
+      "✓ Bei Rissen: Länge in m, Breite in mm angegeben?",
+      "✓ Bei Durchfeuchtung: Fläche oder Länge angegeben?",
+      "FEHLER wenn: Nur qualitative Beschreibung (\"großflächig\")",
+    ],
+    gutachtenarten: [
+      "Bauschadensgutachten",
+      "Baumängelgutachten",
+      "Schimmelgutachten",
+      "Feuchtigkeitsschadengutachten",
+      "Wasserschadengutachten",
+      "Versicherungsgutachten",
+    ],
+    schweregrad: "MITTEL",
+  },
+  {
+    id: "6.2",
+    kategorie: "Schadensermittlung & Dokumentation",
+    titel: "Fotos ohne Maßstab",
+    beschreibung:
+      "Als Prüfverantwortlicher möchte ich automatisiert prüfen, ob Detailfotos einen Maßstab (Zollstock, Münze) enthalten, sodass Größenverhältnisse nachvollziehbar sind.",
+    details: [
+      "Text verweist auf: \"Detail-Foto\" oder \"Nahaufnahme\"",
+      "System prüft Foto-Metadaten oder Bildanalyse:",
+      "✓ Zollstock im Bild?",
+      "✓ Münze/Maßstabskarte im Bild?",
+      "✓ Maßangabe in Bildunterschrift?",
+      "WARNUNG wenn: Kein Maßstab erkennbar",
+    ],
+    gutachtenarten: [
+      "Bauschadensgutachten",
+      "Baumängelgutachten",
+      "Schimmelgutachten",
+      "Feuchtigkeitsschadengutachten",
+      "Wasserschadengutachten",
       "Hauskaufgutachten",
     ],
-  },
-  {
-    id: "A-08",
-    titel: "Unklare Handlungsempfehlungen",
-    beschreibung:
-      "Sanierungskonzept fehlt oder ist zu vage. Keine konkreten Ma\xdfnahmen zur M\xe4ngelbeseitigung.",
-    details: [
-      "Kein konkretes Sanierungskonzept",
-      "Keine Risikoeinsch\xe4tzung f\xfcr zuk\xfcnftige Sch\xe4den",
-      "Fehlende Priorisierung der Ma\xdfnahmen",
-    ],
-    kategorie: "allgemein",
-    gutachtenarten: [
-      "Bauschadensgutachten",
-      "Baum\xe4ngelgutachten",
-      "Privatgutachten",
-    ],
+    schweregrad: "NIEDRIG",
   },
 ];
 
@@ -240,9 +402,6 @@ export default function RegelnPage() {
     ? regeln.filter((r) => r.gutachtenarten.includes(activeFilter))
     : regeln;
 
-  const schimmelRegeln = filtered.filter((r) => r.kategorie === "schimmel");
-  const allgemeineRegeln = filtered.filter((r) => r.kategorie === "allgemein");
-
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-8">
       {/* Header */}
@@ -251,7 +410,7 @@ export default function RegelnPage() {
           {"Pr\xfcfregeln"}
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          {"Regeln f\xfcr die automatische Qualit\xe4tspr\xfcfung von Gutachten, zugeordnet nach Gutachtenart"}
+          {"Regeln f\xfcr die automatische Qualit\xe4tspr\xfcfung von Gutachten. Jede Regel kann verschiedenen Gutachtenarten zugeordnet werden."}
         </p>
       </div>
 
@@ -284,42 +443,14 @@ export default function RegelnPage() {
         })}
       </div>
 
-      {/* Schimmelgutachten rules */}
-      {schimmelRegeln.length > 0 && (
-        <section className="mb-10">
-          <div className="mb-4 flex items-center gap-2">
-            <RiAlertLine className="text-chart-1 size-5" />
-            <h2 className="text-lg font-semibold">
-              {"Schimmelgutachten \u2013 Typische Fehler"}
-            </h2>
-          </div>
-          <div className="flex flex-col gap-3">
-            {schimmelRegeln.map((regel) => (
-              <RegelCard key={regel.id} regel={regel} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Allgemeine rules */}
-      {allgemeineRegeln.length > 0 && (
-        <section>
-          <div className="mb-4 flex items-center gap-2">
-            <RiErrorWarningLine className="text-muted-foreground size-5" />
-            <h2 className="text-lg font-semibold">
-              {"Allgemeine Gutachtenfehler"}
-            </h2>
-          </div>
-          <div className="flex flex-col gap-3">
-            {allgemeineRegeln.map((regel) => (
-              <RegelCard key={regel.id} regel={regel} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Empty state */}
-      {filtered.length === 0 && (
+      {/* Rules list */}
+      {filtered.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          {filtered.map((regel) => (
+            <RegelCard key={regel.id} regel={regel} />
+          ))}
+        </div>
+      ) : (
         <div className="flex flex-col items-center gap-2 py-16 text-center">
           <RiErrorWarningLine className="text-muted-foreground/30 size-10" />
           <p className="text-muted-foreground text-sm">
@@ -334,17 +465,30 @@ export default function RegelnPage() {
 // ── Rule card ───────────────────────────────────────────────────────
 
 function RegelCard({ regel }: { regel: Regel }) {
+  const schweregradColor = {
+    "SEHR HOCH": "bg-destructive/10 text-destructive border-destructive/20",
+    HOCH: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+    MITTEL: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    NIEDRIG: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  }[regel.schweregrad];
+
   return (
     <div className="ring-border rounded-xl p-5 ring-1 transition-shadow hover:shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
             <span className="text-muted-foreground text-xs font-mono">
               {regel.id}
             </span>
-            <h3 className="text-sm font-semibold">{regel.titel}</h3>
+            <Badge variant="outline" className="text-xs font-normal">
+              {regel.kategorie}
+            </Badge>
+            <Badge className={`${schweregradColor} text-xs font-normal`}>
+              {regel.schweregrad}
+            </Badge>
           </div>
-          <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
+          <h3 className="text-sm font-semibold mb-1.5">{regel.titel}</h3>
+          <p className="text-muted-foreground text-sm leading-relaxed">
             {regel.beschreibung}
           </p>
         </div>
@@ -352,9 +496,9 @@ function RegelCard({ regel }: { regel: Regel }) {
 
       {/* Detail checklist */}
       <ul className="mt-3 space-y-1">
-        {regel.details.map((d) => (
+        {regel.details.map((d, idx) => (
           <li
-            key={d}
+            key={idx}
             className="text-muted-foreground flex gap-2 text-sm"
           >
             <span className="text-destructive select-none shrink-0">{"\u2716"}</span>
@@ -362,6 +506,16 @@ function RegelCard({ regel }: { regel: Regel }) {
           </li>
         ))}
       </ul>
+
+      {/* Rechtsgrundlage */}
+      {regel.rechtsgrundlage && (
+        <div className="mt-3 pt-3 border-t">
+          <p className="text-muted-foreground text-xs">
+            <span className="font-medium">Rechtsgrundlage:</span>{" "}
+            {regel.rechtsgrundlage}
+          </p>
+        </div>
+      )}
 
       {/* Gutachtenart tags */}
       <div className="mt-4 flex flex-wrap gap-1.5">
